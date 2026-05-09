@@ -19,6 +19,13 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
+      - name: Test SSH
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+          -o StrictHostKeyChecking=no \
+          deploy@${{ secrets.SERVER_IP }} \
+          "echo SSH SUCCESS"
+
       - name: Deploy Backend Files
         run: |
           rsync -avz --delete \
@@ -29,6 +36,8 @@ jobs:
       - name: Restart Backend
         run: |
           ssh -i ~/.ssh/id_ed25519 \
+          -o StrictHostKeyChecking=no \
           deploy@${{ secrets.SERVER_IP }} \
           "cd /var/www/html/testbackend && pm2 restart testbackend || pm2 start server.js --name testbackend"
+
           

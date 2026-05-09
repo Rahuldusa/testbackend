@@ -1,0 +1,33 @@
+name: TestBackend Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Backend Files
+        run: |
+          rsync -avz --delete \
+          -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
+          ./ \
+          deploy@${{ secrets.SERVER_IP }}:/var/www/html/testbackend/
+
+      - name: Restart Backend
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+          deploy@${{ secrets.SERVER_IP }} \
+          "cd /var/www/html/testbackend && pm2 restart testbackend || pm2 start server.js --name testbackend"

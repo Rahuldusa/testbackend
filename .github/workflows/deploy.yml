@@ -31,3 +31,4 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 \
           deploy@${{ secrets.SERVER_IP }} \
           "cd /var/www/html/testbackend && pm2 restart testbackend || pm2 start server.js --name testbackend"
+          
